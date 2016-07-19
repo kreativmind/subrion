@@ -40,7 +40,7 @@ if (iaView::REQUEST_HTML == $iaView->getRequestType())
 		return iaView::errorPage(iaView::ERROR_NOT_FOUND, iaLanguage::get('no_transaction'));
 	}
 
-	if ($transaction['member_id'] != iaUsers::getIdentity()->id)
+	if (iaUsers::hasIdentity() && $transaction['member_id'] != iaUsers::getIdentity()->id)
 	{
 		return iaView::errorPage(iaView::ERROR_FORBIDDEN);
 	}
@@ -98,7 +98,7 @@ if (iaView::REQUEST_HTML == $iaView->getRequestType())
 				{
 					if ($iaPlan->extractFunds($transaction))
 					{
-						empty($_POST['invaddr']) || $iaCore->factory('invoice')->updateAddress($transaction['id'], $_POST['invaddr']); /*-- MOD // jjangaraev --*/
+						empty($_POST['invaddr']) || $iaCore->factory('invoice')->updateAddress($transaction['id'], $_POST['invaddr']);
 						$iaPlan->setPaid($transaction);
 						iaUtil::redirect(iaLanguage::get('thanks'), iaLanguage::get('payment_done'), $transaction['return_url']);
 					}
@@ -119,44 +119,37 @@ if (iaView::REQUEST_HTML == $iaView->getRequestType())
 				$plan['title'] = $transaction['item'] . ' - ' . $plan['title'];
 
 				$iaView->assign('plan', $plan);
-				$iaView->assign('address', $iaCore->factory('invoice')->getAddress($transaction['id']));
-
-				foreach ($gateways as $key => $gateway)
-				{
-					$htmlFormTemplate = IA_PLUGINS . $key . IA_DS . 'templates' . IA_DS . 'front' . IA_DS . 'form.tpl';
-					$gateways[$key] = file_exists($htmlFormTemplate) ? $htmlFormTemplate : false;
-				}
+				$iaView->assign('address', iaUsers::hasIdentity() ? $iaCore->factory('invoice')->getAddress($transaction['id']) : null);
 
 				// process payment button click
-				if (isset($_POST['payment_type']))
+				if (isset($_POST['payment_type']) && isset($gateways[$_POST['payment_type']]))
 				{
-					$gate = iaSanitize::sql($_POST['payment_type']);
+					$gate = $_POST['payment_type'];
 
-					if (isset($gateways[$gate]))
+					$iaDb->update(array('gateway' => $gate, 'date_updated' => date(iaDb::DATETIME_FORMAT)), iaDb::convertIds($transaction['id']), null, iaTransaction::getTable());
+					$iaCore->factory('invoice')->updateAddress($transaction['id'], $_POST['invaddr']);
+
+					// include pre form send files
+					$paymentGatewayHandler = IA_PLUGINS . $gate . IA_DS . 'includes' . IA_DS . 'pre-processing' . iaSystem::EXECUTABLE_FILE_EXT;
+					if (is_file($paymentGatewayHandler))
 					{
-						$affected = $iaDb->update(array('id' => $transaction['id'], 'gateway' => $gate), null, array('date' => iaDb::FUNCTION_NOW), iaTransaction::getTable());
-						$iaCore->factory('invoice')->updateAddress($transaction['id'], $_POST['invaddr']);
+						include $paymentGatewayHandler;
+					}
 
-						// include pre form send files
-						$paymentGatewayHandler = IA_PLUGINS . $gate . IA_DS . 'includes' . IA_DS . 'pre-processing' . iaSystem::EXECUTABLE_FILE_EXT;
-						if (file_exists($paymentGatewayHandler))
-						{
-							include $paymentGatewayHandler;
-						}
+					$form = IA_PLUGINS . $gate . IA_DS . 'templates' . IA_DS . 'front' . IA_DS . 'form.tpl';
 
-						if (!empty($gateways[$gate]))
-						{
-							$data = array(
-								'caption' => 'Redirect to ' . $gate . '',
-								'msg' => 'You will be redirected to ' . $gate . '',
-								'form' => $gateways[$gate]
-							);
+					if (is_file($form))
+					{
+						$data = array(
+							'caption' => 'Redirect to ' . $gate . '',
+							'msg' => 'You will be redirected to ' . $gate . '',
+							'form' => $form
+						);
 
-							$iaView->assign('redir', $data);
+						$iaView->assign('redir', $data);
 
-							$tplFile = 'redirect-gateway';
-							$iaView->disableLayout();
-						}
+						$tplFile = 'redirect-gateway';
+						$iaView->disableLayout();
 					}
 				}
 

@@ -39,7 +39,6 @@ final class iaSystem
 		$systemClasses = array(
 			'abstractCore' => 'ia.interfaces',
 			'abstractUtil' => 'ia.interfaces',
-			'iaStore' => 'ia.interfaces',
 			// interfaces
 			'iaInterfaceDbAdapter' => 'ia.base.db',
 			// core
@@ -50,6 +49,7 @@ final class iaSystem
 			'abstractPlugin' => 'ia.base.plugin',
 			'abstractPackageAdmin' => 'ia.base.package.admin',
 			'abstractPackageFront' => 'ia.base.package.front',
+			'abstractPackageFrontApiResponder' => 'ia.base.package.front.api',
 			// backend controllers
 			'iaAbstractControllerBackend' => 'ia.base.controller.admin',
 			'iaAbstractControllerPluginBackend' => 'ia.base.controller.plugin.admin',

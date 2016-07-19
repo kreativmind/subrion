@@ -79,15 +79,7 @@
 					</select>
 				</div>
 			</div>
-			{foreach $core.languages as $code => $language}
-				<div class="row">
-					<label class="col col-lg-2 control-label">{lang key='title'} <span class="required">*</span> <span class="label label-info">{$language.title}</span></label>
 
-					<div class="col col-lg-4">
-						<input type="text" name="title[{$code}]"{if isset($item.title.$code)} value="{$item.title.$code|escape:'html'}"{/if}>
-					</div>
-				</div>
-			{/foreach}
 			<div id="js-row-empty-text" class="row">
 				<label class="col col-lg-2 control-label">{lang key='empty_field'} <a href="#" class="js-tooltip" title="{$tooltips.empty_field}"><i class="i-info"></i></a></label>
 
@@ -95,23 +87,25 @@
 					<input type="text" name="empty_field" value="{if isset($item.empty_field)}{$item.empty_field|escape:'html'}{/if}">
 				</div>
 			</div>
-			<div class="row" id="js-pages-list-row"{if iaCore::ACTION_ADD == $pageAction && (!$smarty.post && !isset($smarty.get.item))} style="display: none;"{/if}>
-				<label class="col col-lg-2 control-label">{lang key='shown_on_pages'}</label>
+			{if $pages}
+				<div class="row" id="js-pages-list-row"{if iaCore::ACTION_ADD == $pageAction && (!$smarty.post && !isset($smarty.get.item))} style="display: none;"{/if}>
+					<label class="col col-lg-2 control-label">{lang key='shown_on_pages'}</label>
 
-				<div class="col col-lg-4">
-					<div class="box-simple fieldset">
-					{foreach $pages as $pageId => $entry}
-						<div class="checkbox" data-item="{$entry.item|escape:'html'}"{if $item.item != $entry.item} style="display: none;"{/if}>
-							<label>
-								<input type="checkbox" value="{$entry.name}"{if in_array($entry.name, $item.pages)} checked{/if} name="pages[{$pageId}]">
-								{$entry.title}
-							</label>
+					<div class="col col-lg-4">
+						<div class="box-simple fieldset">
+						{foreach $pages as $pageId => $entry}
+							<div class="checkbox" data-item="{$entry.item|escape:'html'}"{if $item.item != $entry.item} style="display: none;"{/if}>
+								<label>
+									<input type="checkbox" value="{$entry.name}"{if in_array($entry.name, $item.pages)} checked{/if} name="pages[{$pageId}]">
+									{$entry.title}
+								</label>
+							</div>
+						{/foreach}
 						</div>
-					{/foreach}
+						<a href="#" id="toggle-pages" class="label label-default pull-right"><i class="i-lightning"></i> {lang key='select_all'}</a>
 					</div>
-					<a href="#" id="toggle-pages" class="label label-default pull-right"><i class="i-lightning"></i> {lang key='select_all'}</a>
 				</div>
-			</div>
+			{/if}
 			<div class="row">
 				<label class="col col-lg-2 control-label">{lang key='visible_for_admin'} <a href="#" class="js-tooltip" title="{$tooltips.adminonly}"><i class="i-info"></i></a></label>
 
@@ -136,6 +130,8 @@
 				<label class="col col-lg-2 control-label">{lang key='host_fields'}</label>
 
 				<div class="col col-lg-4">
+					{ia_hooker name='adminHostFieldSelectorBefore' item=$item}
+
 					{foreach $parents as $field_item => $item_list}
 						<div class="js-dependent-fields-list" data-item="{$field_item}"{if $item.item != $field_item} style="display: none;"{/if}>
 							<div class="list-group list-group-accordion">
@@ -318,9 +314,10 @@
 						<button class="js-tree-action btn btn-xs btn-success" data-action="create"><i class="i-plus"></i> Add Node</button>
 						<button class="js-tree-action btn btn-xs btn-danger disabled" data-action="delete"><i class="i-minus"></i> Delete</button>
 						<button class="js-tree-action btn btn-xs btn-info disabled" data-action="update"><i class="i-edit"></i> Rename</button>
+						<span class="help-inline pull-right">{lang key='drag_to_reorder'}</span>
 
 						<input type="hidden" name="nodes"{if iaField::TREE == $item.type} value="{$item.values|escape}"{/if}>
-						<div class="categories-tree" id="input-nodes"></div>
+						<div class="categories-tree" id="input-nodes" data-action="{$core.page.info.action}"></div>
 					</div>
 				</div>
 				<div class="row">
@@ -517,8 +514,8 @@
 
 						<div class="col col-lg-4">
 							<select name="pic_resize_mode">
-								<option value="crop"{if isset($item.pic_resize_mode) && iaPicture::CROP == $item.pic_resize_mode} selected{/if} data-annotation="{lang key='crop_tip'}">{lang key='crop'}</option>
-								<option value="fit"{if isset($item.pic_resize_mode) && iaPicture::FIT == $item.pic_resize_mode} selected{/if} data-annotation="{lang key='fit_tip'}">{lang key='fit'}</option>
+								<option value="crop"{if isset($item.resize_mode) && iaPicture::CROP == $item.resize_mode} selected{/if} data-annotation="{lang key='crop_tip'}">{lang key='crop'}</option>
+								<option value="fit"{if isset($item.resize_mode) && iaPicture::FIT == $item.resize_mode} selected{/if} data-annotation="{lang key='fit_tip'}">{lang key='fit'}</option>
 							</select>
 							<p class="help-block"></p>
 						</div>
@@ -547,6 +544,34 @@
 
 				<div class="col col-lg-8">
 					<textarea name="extra_actions" class="js-code-editor">{if isset($item.extra_actions)}{$item.extra_actions|escape:'html'}{/if}</textarea>
+				</div>
+			</div>
+
+			<div class="row">
+				<ul class="nav nav-tabs">
+					{foreach $core.languages as $code => $language}
+						<li{if $language@iteration == 1} class="active"{/if}><a href="#tab-language-{$code}" data-toggle="tab" data-language="{$code}">{$language.title}</a></li>
+					{/foreach}
+				</ul>
+
+				<div class="tab-content">
+					{foreach $core.languages as $code => $language}
+						<div class="tab-pane{if $language@first} active{/if}" id="tab-language-{$code}">
+							<div class="row">
+								<label class="col col-lg-2 control-label">{lang key='title'} <span class="required">*</span></label>
+								<div class="col col-lg-10">
+									<input type="text" name="title[{$code}]"{if isset($item.title.$code)} value="{$item.title.$code|escape:'html'}"{/if}>
+								</div>
+							</div>
+							<div class="row">
+								<label class="col col-lg-2 control-label">{lang key='tooltip'}</label>
+								<div class="col col-lg-10">
+									<input type="text" name="annotation[{$code}]"{if isset($item.annotation.$code)} value="{$item.annotation.$code|escape:'html'}"{/if}>
+								</div>
+							</div>
+
+						</div>
+					{/foreach}
 				</div>
 			</div>
 		</div>

@@ -151,11 +151,11 @@ class iaBackendController extends iaAbstractControllerBackend
 		$sql =
 			'SELECT SQL_CALC_FOUND_ROWS '
 				. 't.`id`, t.`item`, t.`item_id`, CONCAT(t.`amount`, " ", t.`currency`) `amount`, '
-				. 't.`date`, t.`status`, t.`currency`, t.`operation`, t.`plan_id`, t.`reference_id`, '
+				. 't.`date_created`, t.`status`, t.`currency`, t.`operation`, t.`plan_id`, t.`reference_id`, '
 				. "t.`gateway`, IF(t.`fullname` = '', m.`username`, t.`fullname`) `user`, IF(t.`status` != 'passed', 1, 0) `delete` " .
 			'FROM `:prefix:table_transactions` t ' .
 			'LEFT JOIN `:prefix:table_members` m ON (m.`id` = t.`member_id`) ' .
-			($where ? 'WHERE ' . $where . ' ' : '') . $order . ' ' .
+			($where ? 'WHERE ' . $where . ' ' : '') . str_replace('t.`user`', '`user`', $order) . ' ' .
 			'LIMIT :start, :limit';
 		$sql = iaDb::printf($sql, array(
 			'prefix' => $this->_iaDb->prefix,
@@ -196,7 +196,7 @@ class iaBackendController extends iaAbstractControllerBackend
 			'reference_id' => empty($_POST['reference_id']) ? date('mdyHis') : iaSanitize::htmlInjectionFilter($_POST['reference_id']),
 			'amount' => (float)$_POST['amount'],
 			'currency' => $this->_iaCore->get('currency'),
-			'date' => $_POST['date'] . ' ' . $_POST['time']
+			'date_created' => $_POST['date'] . ' ' . $_POST['time']
 		);
 
 		if ($transaction['plan_id'])

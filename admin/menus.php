@@ -216,7 +216,7 @@ class iaBackendController extends iaAbstractControllerBackend
 					$output['message'] = iaLanguage::get('saved');
 					$output['success'] = true;
 
-					$this->_iaCore->iaCache->remove('menu_' . $menu . '.inc');
+					$this->_iaCore->iaCache->remove('menu_' . $menu);
 				}
 
 				break;
@@ -274,7 +274,7 @@ class iaBackendController extends iaAbstractControllerBackend
 		$entry['collapsible'] = (int)$data['collapsible'];
 		$entry['collapsed'] = (int)$data['collapsed'];
 
-		$menuExists = $this->_iaDb->exists('`name` = :name', $entry);
+		$menuExists = $this->_iaDb->exists(iaDb::convertIds($entry['name'], 'name'));
 
 		if (iaCore::ACTION_EDIT == $action)
 		{
@@ -320,7 +320,7 @@ class iaBackendController extends iaAbstractControllerBackend
 
 		if (iaCore::ACTION_EDIT == $action)
 		{
-			$this->_iaCore->iaCache->remove('menu_' . $this->getEntryId() . '.inc');
+			$this->_iaCore->iaCache->remove('menu_' . $this->getEntryId());
 		}
 	}
 

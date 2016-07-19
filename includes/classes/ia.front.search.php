@@ -135,6 +135,7 @@ class iaSearch extends abstractCore
 				$result['pagination'] = iaSmarty::pagination(array('aTotal' => $search[0], 'aItemsPerPage' => $this->_limit, 'aTemplate' => '#'), $this->iaView->iaSmarty);
 				is_null($p) || $_GET['page'] = $p;
 
+				$result['total'] = $search[0];
 				$result['html'] = $this->_renderResults($search[1]);
 			}
 		}
@@ -225,6 +226,7 @@ class iaSearch extends abstractCore
 			);
 
 			$iaSmarty->assign('core', $core);
+			$iaSmarty->assign('img', IA_TPL_URL . 'img/');
 			$iaSmarty->assign('member', iaUsers::getIdentity(true));
 
 			$this->_smartyVarsAssigned = true;
@@ -581,6 +583,7 @@ class iaSearch extends abstractCore
 
 					continue 2;
 
+				case iaField::RADIO:
 				case iaField::COMBO:
 				case iaField::TREE:
 					$array = array();

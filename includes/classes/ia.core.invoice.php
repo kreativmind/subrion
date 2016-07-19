@@ -116,7 +116,7 @@ class iaInvoice extends abstractCore
 			. 'FROM `:prefix:table_transactions` t '
 			. 'LEFT JOIN `:prefix:table_invoices` i ON (i.`transaction_id` = t.`id`) '
 			. 'WHERE t.`member_id` = :member AND i.`address1` != "" '
-			. 'ORDER BY t.`date` DESC '
+			. 'ORDER BY t.`date_created` DESC '
 			. 'LIMIT 1';
 		$sql = iaDb::printf($sql, array(
 			'prefix' => $this->iaDb->prefix,
@@ -170,6 +170,11 @@ class iaInvoice extends abstractCore
 
 	protected function _sendEmailNotification(array $invoice, array $transaction)
 	{
+		if (!$this->iaCore->get('invoice_created'))
+		{
+			return true;
+		}
+
 		$iaUsers = $this->iaCore->factory('users');
 
 		$member = $iaUsers->getById($transaction['member_id']);

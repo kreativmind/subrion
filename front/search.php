@@ -51,15 +51,25 @@ if (iaView::REQUEST_JSON == $iaView->getRequestType())
 	{
 		if (!empty($_SERVER['HTTP_REFERER'])) // this makes possible displaying filters block everywhere, but displaying results at the right page
 		{
-			$pageUrl = $iaCore->factory('page', iaCore::FRONT)->getUrlByName('search_' . $itemName);
-			$pageUrl || $pageUrl = IA_URL . 'search/' . $itemName . '/';
+			$referrerUri = str_replace(IA_CLEAR_URL, '', $_SERVER['HTTP_REFERER']);
+			$lang = '';
 
-			if (parse_url($pageUrl, PHP_URL_PATH) != parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH)
-				|| false !== stripos($_SERVER['HTTP_REFERER'], '?q='))
+			if (IA_URL_LANG) // we should keep user's current language
 			{
-				$pageUrl.= '#' . $iaSearch->httpBuildQuery($_GET);
+				$l = explode(IA_URL_DELIMITER, trim($referrerUri, IA_URL_DELIMITER));
+				$l = array_shift($l);
+				$lang = (isset($iaCore->languages[$l]) ? $l : $iaView->language) . IA_URL_DELIMITER;
+			}
 
-				$iaView->assign('url', $pageUrl);
+			$pageUri = $iaCore->factory('page', iaCore::FRONT)->getUrlByName('search_' . $itemName, false);
+			$pageUri || $pageUri = 'search/' . $itemName . '/';
+			$pageUri = $lang . $pageUri;
+
+			if ($pageUri != $referrerUri || false !== stripos($_SERVER['HTTP_REFERER'], '?q='))
+			{
+				$pageUri = IA_CLEAR_URL . $pageUri . '#' . $iaSearch->httpBuildQuery($_GET);
+
+				$iaView->assign('url', $pageUri);
 				return;
 			}
 		}

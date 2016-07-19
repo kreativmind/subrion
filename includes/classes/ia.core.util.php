@@ -290,28 +290,12 @@ class iaUtil extends abstractUtil
 			$userName = iaUsers::hasIdentity() ? iaUsers::getIdentity()->username : false;
 		}
 
-		$serverDirectory = '';
-		umask(0);
+		$serverDirectory = empty($userName)
+			? '_notregistered' . IA_DS
+			: strtolower(substr($userName, 0, 1)) . IA_DS . $userName . IA_DS;
 
-		if (empty($userName))
-		{
-			$serverDirectory .= '_notregistered' . IA_DS;
-			if (!is_dir(IA_UPLOADS . $serverDirectory))
-			{
-				mkdir(IA_UPLOADS . $serverDirectory);
-			}
-		}
-		else
-		{
-			$subFolders = array();
-			$subFolders[] = strtolower(substr($userName, 0, 1)) . IA_DS;
-			$subFolders[] = $userName . IA_DS;
-			foreach ($subFolders as $folderName)
-			{
-				$serverDirectory .= $folderName;
-				is_dir(IA_UPLOADS . $serverDirectory) || mkdir(IA_UPLOADS . $serverDirectory);
-			}
-		}
+		umask(0);
+		is_dir(IA_UPLOADS . $serverDirectory) || mkdir(IA_UPLOADS . $serverDirectory, 0777, true);
 
 		return $serverDirectory;
 	}

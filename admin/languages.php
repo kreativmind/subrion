@@ -184,9 +184,6 @@ class iaBackendController extends iaAbstractControllerBackend
 
 			if (!$error)
 			{
-				$lang = (isset($_POST['language']) && array_key_exists($_POST['language'], $this->_iaCore->languages))
-					? $_POST['language']
-					: $iaView->language;
 				$key = iaSanitize::paranoid($_POST['key']);
 				$value = $_POST['value'];
 				$category = iaSanitize::paranoid($_POST['category']);
@@ -202,23 +199,23 @@ class iaBackendController extends iaAbstractControllerBackend
 					$error = true;
 					$output['message'] = iaLanguage::get('incorrect_value');
 				}
-
-				if ($this->_iaDb->exists('`key` = :key AND `code` = :language AND `category` = :category', array('key' => $key, 'language' => $lang, 'category' => $category)))
-				{
-					$error = true;
-					$output['message'] = iaLanguage::get('key_exists');
-				}
 			}
 
 			if (!$error)
 			{
-				$output['success'] = (bool)$this->_iaDb->insert(array('key' => $key, 'original' => $value, 'value' => $value, 'code' => $lang, 'category' => $category));
-				$output['message'] = iaLanguage::get($output['success'] ? $this->_phraseAddSuccess : $this->_phraseSaveError);
-
-				if ($output['success'])
+				foreach ($this->_iaCore->languages as $code => $language)
 				{
-					$this->getHelper()->createJsCache(true);
+					$exist = $this->_iaDb->exists('`key` = :key AND `code` = :language AND `category` = :category',
+						array('key' => $key, 'language' => $code, 'category' => $category));
+					if (isset($_POST['force_replacement']) || !$exist)
+					{
+						iaLanguage::addPhrase($key, $value[$code], $code, '', $category);
+					}
 				}
+
+				$output['message'] = $output['success']= iaLanguage::get($this->_phraseAddSuccess);
+
+				$this->getHelper()->createJsCache(true);
 			}
 		}
 
@@ -321,7 +318,7 @@ class iaBackendController extends iaAbstractControllerBackend
 		}
 
 		$entry['title'] = $data['title'];
-		$entry['code'] = $data['code'];
+		$entry['code'] = strtolower($data['code']);
 		$entry['locale'] = $data['locale'];
 		$entry['date_format'] = $data['date_format'];
 		$entry['direction'] = $data['direction'];
@@ -352,7 +349,7 @@ class iaBackendController extends iaAbstractControllerBackend
 			'locale' => 'en_US',
 			'date_format' => '%b %e, %Y',
 			'direction' => 'auto',
-			'status' => iaCore::STATUS_INACTIVE,
+			'status' => iaCore::STATUS_INACTIVE
 		);
 	}
 

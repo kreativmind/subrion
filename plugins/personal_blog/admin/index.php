@@ -20,7 +20,10 @@
  * along with Subrion. If not, see <http://www.gnu.org/licenses/>.
  *
  *
+ * @package Subrion\Plugin\PersonalBlog\Admin
  * @link http://www.subrion.org/
+ * @author https://intelliants.com/ <support@subrion.org>
+ * @license http://www.subrion.org/license.html
  *
  ******************************************************************************/
 
@@ -127,7 +130,7 @@ class iaBackendController extends iaAbstractControllerPluginBackend
 			return false;
 		}
 
-		unset($entry['owner']);
+		unset($entry['owner'], $entry['tags']);
 
 		if (isset($_FILES['image']['tmp_name']) && $_FILES['image']['tmp_name'])
 		{
@@ -147,8 +150,6 @@ class iaBackendController extends iaAbstractControllerPluginBackend
 				$entry['image'] = $image;
 			}
 		}
-
-		unset($entry['tags']);
 
 		return true;
 	}

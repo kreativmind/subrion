@@ -180,7 +180,7 @@ final class iaCore
 	{
 		$iaView = &$this->iaView;
 
-		$domain = preg_replace('#[^a-z_0-9-.]#i', '', $_SERVER['HTTP_HOST']);
+		$domain = preg_replace('#[^a-z_0-9-.:]#i', '', $_SERVER['HTTP_HOST']);
 		$requestPath = ltrim($_SERVER['REQUEST_URI'], IA_URL_DELIMITER);
 
 		if (!preg_match('#^www\.#', $domain) && preg_match('#:\/\/www\.#', $this->get('baseurl')))
@@ -569,7 +569,7 @@ final class iaCore
 			$result = (bool)$this->iaDb->update(array('value' => $value), iaDb::convertIds($key, 'name'), null, self::getConfigTable());
 
 			$this->iaCache->createJsCache(array('config'));
-			$this->iaCache->remove('config.inc');
+			$this->iaCache->remove('config');
 		}
 
 		return $result;

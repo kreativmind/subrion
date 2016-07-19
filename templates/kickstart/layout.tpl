@@ -9,7 +9,7 @@
 		<meta name="description" content="{$core.page['meta-description']}">
 		<meta name="keywords" content="{$core.page['meta-keywords']}">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="generator" content="Subrion CMS {$core.config.version} - Open Source Content Management System">
+		<meta name="generator" content="Subrion CMS - Open Source Content Management System">
 		<meta name="robots" content="index">
 		<meta name="robots" content="follow">
 		<meta name="revisit-after" content="1 day">
@@ -40,7 +40,7 @@
 	</head>
 
 	<body class="page-{$core.page.name}">
-		<header class="header"{if $core.config.website_bg} style="background-image: url('{$smarty.const.IA_URL}uploads/{$core.config.website_bg}');"{/if}>
+		<header class="header"{if $core.config.website_bg} style="background-image: url('{$core.page.nonProtocolUrl}uploads/{$core.config.website_bg}');"{/if}>
 			<div class="inventory">
 				<div class="container">
 					{ia_blocks block='inventory'}

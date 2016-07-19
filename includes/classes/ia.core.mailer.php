@@ -139,12 +139,14 @@ class iaMailer extends PHPMailer
 
 	public function sendToAdministrators($clearAddresses = true)
 	{
-		if ($administrators = $this->_iaCore->iaDb->keyvalue(array('email', 'fullname'), '`usergroup_id` = ' . iaUsers::MEMBERSHIP_ADMINISTRATOR, iaUsers::getTable()))
+		$where = '`usergroup_id` = :group AND `status` = :status';
+		$this->_iaCore->iaDb->bind($where, array('group' => iaUsers::MEMBERSHIP_ADMINISTRATOR, 'status' => iaCore::STATUS_ACTIVE));
+
+		$administrators = $this->_iaCore->iaDb->all(array('email', 'fullname'), $where, null, null, iaUsers::getTable());
+
+		foreach ($administrators as $entry)
 		{
-			foreach ($administrators as $email => $name)
-			{
-				$this->addAddress($email, $name);
-			}
+			$this->addAddress($entry['email'], $entry['fullname']);
 		}
 
 		return $this->send($clearAddresses);
@@ -158,7 +160,7 @@ class iaMailer extends PHPMailer
 
 		if ($clearAddresses)
 		{
-			parent::clearAddresses();
+			parent::clearAllRecipients();
 		}
 
 		if (!$result)

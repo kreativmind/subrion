@@ -24,7 +24,7 @@
  *
  ******************************************************************************/
 
-define('IA_VER', '40410');
+define('IA_VER', '405');
 
 $iaOutput->layout()->title = 'Installation Wizard';
 
@@ -319,6 +319,8 @@ switch ($step)
 					$file = file($dumpFile);
 					if (count($file) > 0)
 					{
+						mysqli_query($link, "SET NAMES 'utf8'");
+
 						foreach ($file as $s)
 						{
 							$s = trim ($s);

@@ -1181,7 +1181,7 @@ class iaExtra extends abstractCore
 								);
 								$db = true;
 
-								$this->iaCore->iaCache->remove('menu_' . $id . '.inc');
+								$this->iaCore->iaCache->remove('menu_' . $id);
 							}
 						}
 
@@ -2225,7 +2225,6 @@ class iaExtra extends abstractCore
 
 		$this->iaDb->setTable(iaField::getTable());
 
-		$maxOrder = $this->iaDb->getMaxOrder();
 		foreach ($fields as $entry)
 		{
 			$stmt = '`item` = :item AND `name` = :name';
@@ -2244,7 +2243,7 @@ class iaExtra extends abstractCore
 				continue;
 			}
 
-			$entry['order'] || $entry['order'] = ++$maxOrder;
+			$entry['order'] || $entry['order'] = $this->iaDb->getMaxOrder(null, array('item', $entry['item'])) + 1;
 			$entry['fieldgroup_id'] = isset($fieldGroups[$entry['item'] . $entry['group']])
 				? $fieldGroups[$entry['item'] . $entry['group']]
 				: 0;
@@ -2356,12 +2355,12 @@ class iaExtra extends abstractCore
 
 		foreach ($entries as $title => $entry)
 		{
+			empty($entry['group']) || ($this->_menuGroups[] = $entry['group']);
+
 			$entry['group'] = $this->_lookupGroupId($entry['group']);
 			$entry['order'] = (int)(is_null($entry['order'])
 				? $this->iaDb->one_bind('MAX(`order`) + 5', '`group` = :group', $entry)
 				: $entry['order']);
-
-			empty($entry['group']) || ($this->_menuGroups[] = $entry['group']);
 			empty($entry['name']) && $entry['attr'] = iaUtil::generateToken(8);
 
 			$this->iaDb->insert($entry);

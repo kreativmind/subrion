@@ -83,6 +83,7 @@ intelli.search = (function()
 					if (response.html !== undefined)
 					{
 						$('#js-search-results-container').html(response.html);
+						$('#js-search-results-num').html(response.total);
 						$('#js-search-results-pagination').html(response.pagination);
 					}
 
@@ -109,7 +110,7 @@ intelli.search = (function()
 				var $ctl = $('[name="' + name + '"]', $form),
 					value = values[name];
 
-				if (!$ctl.length)
+				if (!$ctl.length || !value)
 				{
 					continue;
 				}
@@ -126,13 +127,18 @@ intelli.search = (function()
 							default:
 								$ctl.val(value);
 						}
+
 						break;
 					case 'select':
-						$('option[value="' + value + '"]', $ctl).prop('selected', true).trigger('change');
+						var $option = $('option[value="' + value + '"]', $ctl);
+
+						if ($option.length)
+							$option.prop('selected', true).trigger('change');
+						else $ctl.data('value', value);
 				}
 			}
 
-			//this.run();
+			this.run();
 		}
 	};
 })();
